@@ -1,6 +1,6 @@
 import SearchIcon from "@rsuite/icons/Search";
 import React, { useEffect, useState } from "react";
-import { Button, Input, InputGroup, Stack, Table } from "rsuite";
+import { Button, IconButton, Input, InputGroup, Stack, Table } from "rsuite";
 import Flag from "../../components/flag/Flag";
 import { findMaxValue } from "../../utils/FindMaxValue";
 import ProvincePopup from "./components/ProvincePopup";
@@ -132,10 +132,6 @@ const Province = ({ data, setData }) => {
   };
 
   useEffect(() => {
-    handleSearch();
-  }, [params]);
-
-  useEffect(() => {
     setList(data.District);
     handleSearch();
   }, [reloadKey]);
@@ -180,6 +176,15 @@ const Province = ({ data, setData }) => {
             </InputGroup>
           </Stack>
         </Stack>
+
+        <IconButton
+          appearance="primary"
+          color="cyan"
+          icon={<SearchIcon />}
+          onClick={handleSearch}
+        >
+          Tìm kiếm
+        </IconButton>
 
         <Button appearance="primary" color="green" onClick={handleAdd}>
           Thêm
