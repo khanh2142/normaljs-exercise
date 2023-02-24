@@ -2,7 +2,6 @@ import SearchIcon from "@rsuite/icons/Search";
 import React, { useEffect, useState } from "react";
 import { Button, IconButton, Input, InputGroup, Stack, Table } from "rsuite";
 import Flag from "../../components/flag/Flag";
-import { findMaxValue } from "../../utils/FindMaxValue";
 import DistrictPopup from "./components/DistrictPopup";
 
 const { Column, HeaderCell, Cell } = Table;
@@ -103,12 +102,7 @@ const District = ({ data, setData }) => {
 
   const handleAdd = () => {
     const confirmAdd = (formValue) => {
-      const newDistrictCode = findMaxValue(data.District, "DistrictCode") + 1;
-
-      const arr = [
-        ...data.District,
-        { ...formValue, DistrictCode: newDistrictCode.toString() },
-      ];
+      const arr = [...data.District, formValue];
 
       setData({ ...data, District: arr });
       handleReload();
