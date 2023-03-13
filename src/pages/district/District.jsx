@@ -1,243 +1,253 @@
-import SearchIcon from "@rsuite/icons/Search";
 import React, { useEffect, useState } from "react";
-import { Button, IconButton, Input, InputGroup, Stack, Table } from "rsuite";
-import Flag from "../../components/flag/Flag";
-import DistrictPopup from "./components/DistrictPopup";
+import DistrictEdit from "./components/DistrictEdit";
 
-const { Column, HeaderCell, Cell } = Table;
-
-const District = ({ data, setData }) => {
+function District({ data, setData }) {
   const [list, setList] = useState(data.District);
   const [params, setParams] = useState({
     DistrictCode: "",
     DistrictName: "",
   });
-  const [popUp, setPopUp] = useState(<></>);
-  const [reloadKey, setReloadKey] = useState("0");
+  const [currentComponent, setCurrentComponent] = useState(null);
 
-  const handleReload = () => {
-    setReloadKey(Math.random());
-  };
+  function handleSearch() {
+    const arr = data.District;
+    const newArr = [];
+    for (let i = 0; i < arr.length; i++) {
+      const item = arr[i];
 
-  const handleSearch = () => {
-    const arr = [...data.District]
-      .filter((item, index) => {
-        if (!params.DistrictCode || params.DistrictCode === "") {
-          return item;
+      if (
+        (!params.DistrictCode || params.DistrictCode === "") &&
+        (!params.DistrictName || params.DistrictName === "")
+      ) {
+        newArr.push(item);
+      } else if (
+        item.DistrictCode &&
+        item.DistrictCode.toLowerCase().indexOf(
+          params.DistrictCode.toLowerCase()
+        ) !== -1 &&
+        (!params.DistrictName || params.DistrictName === "")
+      ) {
+        newArr.push(item);
+      } else if (
+        item.DistrictName &&
+        item.DistrictName.toLowerCase().indexOf(
+          params.DistrictName.toLowerCase()
+        ) !== -1 &&
+        (!params.DistrictCode || params.DistrictCode === "")
+      ) {
+        newArr.push(item);
+      } else if (
+        item.DistrictCode &&
+        item.DistrictCode.toLowerCase().indexOf(
+          params.DistrictCode.toLowerCase()
+        ) !== -1 &&
+        item.DistrictName &&
+        item.DistrictName.toLowerCase().indexOf(
+          params.DistrictName.toLowerCase()
+        ) !== -1
+      ) {
+        newArr.push(item);
+      }
+    }
+
+    const finalArr = [];
+    for (let i = 0; i < newArr.length; i++) {
+      const item = newArr[i];
+      finalArr.push(Object.assign({}, item, { Idx: i + 1 }));
+    }
+
+    setList(finalArr);
+  }
+
+  function handleEdit(currentItem) {
+    function handleSave(formValue) {
+      const arr = data.District;
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i].DistrictCode === formValue.DistrictCode) {
+          arr[i] = formValue;
         }
-        return (
-          item.DistrictCode &&
-          item.DistrictCode.toLowerCase().includes(
-            params.DistrictCode.toLowerCase()
-          )
-        );
-      })
-      .filter((item, index) => {
-        if (!params.DistrictName || params.DistrictName === "") {
-          return item;
-        }
-        return (
-          item.DistrictName &&
-          item.DistrictName.toLowerCase().includes(
-            params.DistrictName.toLowerCase()
-          )
-        );
-      })
-      .map((item, index) => {
-        return {
-          ...item,
-          Idx: index + 1,
-        };
-      });
+      }
 
-    setList(arr);
-  };
+      setData(Object.assign({}, data, { District: arr }));
 
-  const handleEdit = (rowData) => {
-    const confirmEdit = (formValue) => {
-      const arr = data.District.map((item) => {
-        if (item.DistrictCode === formValue.DistrictCode) {
-          item = formValue;
-        }
-        return item;
-      });
+      handleBack();
+    }
 
-      setData({ ...data, District: arr });
-      handleReload();
-    };
-
-    setPopUp(
-      <DistrictPopup
-        uuid={Math.random()}
-        rowData={rowData}
-        handleClick={confirmEdit}
+    setCurrentComponent(
+      <DistrictEdit
+        handleBack={handleBack}
+        listProvince={data.Province}
+        currentItem={currentItem}
+        handleSave={handleSave}
         title="Chỉnh sửa"
-        provinceList={data.Province}
-        type="edit"
       />
     );
-  };
+  }
 
-  const handleDelete = (rowData) => {
-    const confirmDelete = (formValue) => {
-      const arr = data.District.filter((item) => {
-        return item.DistrictCode !== formValue.DistrictCode;
-      });
+  function handleDelete(currentItem) {
+    if (
+      window.confirm(`Bạn có muốn xóa quận/huyện: ${currentItem.DistrictName}`)
+    ) {
+      const arr = data.District;
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i].DistrictCode === currentItem.DistrictCode) {
+          arr.splice(i, 1);
+        }
+      }
 
-      setData({ ...data, District: arr });
-      handleReload();
-    };
+      setData(Object.assign({}, data, { District: arr }));
+    }
+  }
 
-    setPopUp(
-      <DistrictPopup
-        uuid={Math.random()}
-        rowData={rowData}
-        handleClick={confirmDelete}
-        title="Xóa"
-        provinceList={data.Province}
-        type="delete"
+  function handleBack() {
+    setCurrentComponent(null);
+  }
+
+  function handleAdd() {
+    function handleSave(formValue) {
+      const arr = data.District;
+      let check = false;
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i].DistrictCode === formValue.DistrictCode) {
+          check = true;
+        }
+      }
+      if (check === false) {
+        arr.push(formValue);
+        setData(Object.assign({}, data, { District: arr }));
+        handleBack();
+      } else {
+        alert("Mã quận/huyện đã tồn tại!");
+        return;
+      }
+    }
+
+    setCurrentComponent(
+      <DistrictEdit
+        handleBack={handleBack}
+        listProvince={data.Province}
+        handleSave={handleSave}
+        title="Thêm mới"
       />
     );
-  };
-
-  const handleAdd = () => {
-    const confirmAdd = (formValue) => {
-      const arr = [...data.District, formValue];
-
-      setData({ ...data, District: arr });
-      handleReload();
-    };
-
-    setPopUp(
-      <DistrictPopup
-        uuid={Math.random()}
-        handleClick={confirmAdd}
-        title="Thêm"
-        provinceList={data.Province}
-        type="add"
-        districtList={data.District}
-      />
-    );
-  };
+  }
 
   useEffect(() => {
     setList(data.District);
-    handleSearch();
-  }, [reloadKey]);
+  }, [data]);
+
+  function renderSearch() {
+    return (
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+          flexDirection: "column",
+          alignItems: "flex-start",
+        }}
+      >
+        <div>
+          <label style={{ marginRight: 10 }}>Mã quận/huyện</label>
+          <input
+            onChange={function (e) {
+              setParams({
+                DistrictCode: e.target.value,
+                DistrictName: params.DistrictName,
+              });
+            }}
+          />
+        </div>
+        <div>
+          <label style={{ marginRight: 10 }}>Tên quận/huyện</label>
+          <input
+            onChange={function (e) {
+              setParams({
+                DistrictCode: params.DistrictCode,
+                DistrictName: e.target.value,
+              });
+            }}
+          />
+        </div>
+        <button
+          style={{ padding: "5px 10px", backgroundColor: "#73d13d" }}
+          onClick={handleSearch}
+        >
+          Tìm kiếm
+        </button>
+        <button
+          style={{ padding: "5px 10px", backgroundColor: "#b37feb" }}
+          onClick={handleAdd}
+        >
+          Thêm
+        </button>
+      </div>
+    );
+  }
+
+  function renderTable() {
+    const renderReacNode = [];
+    for (let i = 0; i < list.length; i++) {
+      renderReacNode.push(
+        <tr>
+          <td>{list[i].DistrictCode}</td>
+          <td>{list[i].DistrictName}</td>
+          <td>{list[i].ProvinceCode}</td>
+          <td>
+            <span style={{ display: "flex", gap: 10 }}>
+              <button
+                style={{
+                  padding: "5px 10px",
+                  backgroundColor: "#fff566",
+                }}
+                onClick={() => handleEdit(list[i])}
+              >
+                Sửa
+              </button>
+              <button
+                style={{
+                  padding: "5px 10px",
+                  backgroundColor: "#ff4d4f",
+                }}
+                onClick={() => handleDelete(list[i])}
+              >
+                Xóa
+              </button>
+            </span>
+          </td>
+        </tr>
+      );
+    }
+
+    return renderReacNode;
+  }
 
   return (
     <div
       style={{
-        height: "100%",
+        height: "100vh",
         width: "100%",
         overflow: "hidden",
-        padding: "10px 0",
+        padding: 10,
       }}
     >
-      <Stack style={{ marginBottom: 30 }} spacing={10} alignItems="flex-start">
-        <Stack direction="column" spacing={10}>
-          <Stack spacing={10}>
-            <label>Tìm theo mã huyện</label>
-            <InputGroup
-              style={{ width: 300 }}
-              onChange={(e) => {
-                setParams({ ...params, DistrictCode: e.target.value });
-              }}
-            >
-              <Input />
-              <InputGroup.Addon>
-                <SearchIcon />
-              </InputGroup.Addon>
-            </InputGroup>
-          </Stack>
-          <Stack spacing={10}>
-            <label>Tìm theo tên huyện</label>
-            <InputGroup
-              style={{ width: 300 }}
-              onChange={(e) => {
-                setParams({ ...params, DistrictName: e.target.value });
-              }}
-            >
-              <Input />
-              <InputGroup.Addon>
-                <SearchIcon />
-              </InputGroup.Addon>
-            </InputGroup>
-          </Stack>
-        </Stack>
-
-        <IconButton
-          appearance="primary"
-          color="cyan"
-          icon={<SearchIcon />}
-          onClick={handleSearch}
-        >
-          Tìm kiếm
-        </IconButton>
-
-        <Button appearance="primary" color="green" onClick={handleAdd}>
-          Thêm
-        </Button>
-      </Stack>
-
-      <Table data={list} style={{ width: "100%" }} height={600} rowHeight={55}>
-        <Column width={100}>
-          <HeaderCell>STT</HeaderCell>
-          <Cell dataKey="Idx" />
-        </Column>
-
-        <Column width={200}>
-          <HeaderCell>DistrictCode</HeaderCell>
-          <Cell dataKey="DistrictCode" />
-        </Column>
-
-        <Column width={200}>
-          <HeaderCell>ProvinceCode</HeaderCell>
-          <Cell dataKey="ProvinceCode" />
-        </Column>
-
-        <Column width={200}>
-          <HeaderCell>DistrictName</HeaderCell>
-          <Cell dataKey="DistrictName" />
-        </Column>
-
-        <Column width={200}>
-          <HeaderCell>FlagActive</HeaderCell>
-          <Cell style={{ display: "flex", justifyContent: "center" }}>
-            {(rowData) => <Flag flag={rowData.FlagActive} />}
-          </Cell>
-        </Column>
-
-        <Column width={200}>
-          <HeaderCell></HeaderCell>
-          <Cell>
-            {(rowData) => (
-              <Stack spacing={10}>
-                <Button
-                  style={{ height: 30 }}
-                  color="yellow"
-                  appearance="primary"
-                  onClick={() => handleEdit(rowData)}
-                >
-                  Sửa
-                </Button>
-                <Button
-                  style={{ height: 30 }}
-                  color="red"
-                  appearance="primary"
-                  onClick={() => handleDelete(rowData)}
-                >
-                  Xóa
-                </Button>
-              </Stack>
-            )}
-          </Cell>
-        </Column>
-      </Table>
-
-      {popUp}
+      {currentComponent || (
+        <>
+          {renderSearch()}
+          <div style={{ height: 550, overflow: "auto", marginTop: 50 }}>
+            <table border={1}>
+              <tr>
+                <th>DistrictCode</th>
+                <th>DistrictName</th>
+                <th>ProvinceCode</th>
+                <th></th>
+              </tr>
+              <tbody>{renderTable()}</tbody>
+            </table>
+          </div>
+        </>
+      )}
     </div>
   );
-};
+}
 
 export default District;

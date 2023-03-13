@@ -1,243 +1,251 @@
-import SearchIcon from "@rsuite/icons/Search";
 import React, { useEffect, useState } from "react";
-import { Button, IconButton, Input, InputGroup, Stack, Table } from "rsuite";
-import Flag from "../../components/flag/Flag";
-import ProvincePopup from "./components/ProvincePopup";
+import ProvinceEdit from "./components/ProvinceEdit";
 
-const { Column, HeaderCell, Cell } = Table;
-
-const Province = ({ data, setData }) => {
+function Province({ data, setData }) {
   const [list, setList] = useState(data.Province);
   const [params, setParams] = useState({
-    ProvinceName: "",
     ProvinceCode: "",
+    ProvinceName: "",
   });
+  const [currentComponent, setCurrentComponent] = useState(null);
 
-  const [popUp, setPopUp] = useState(<></>);
-  const [reloadKey, setReloadKey] = useState("0");
+  function handleSearch() {
+    const arr = data.Province;
+    const newArr = [];
+    for (let i = 0; i < arr.length; i++) {
+      const item = arr[i];
 
-  const handleReload = () => {
-    setReloadKey(Math.random());
-  };
+      if (
+        (!params.ProvinceCode || params.ProvinceCode === "") &&
+        (!params.ProvinceName || params.ProvinceName === "")
+      ) {
+        newArr.push(item);
+      } else if (
+        item.ProvinceCode &&
+        item.ProvinceCode.toLowerCase().indexOf(
+          params.ProvinceCode.toLowerCase()
+        ) !== -1 &&
+        (!params.ProvinceName || params.ProvinceName === "")
+      ) {
+        newArr.push(item);
+      } else if (
+        item.ProvinceName &&
+        item.ProvinceName.toLowerCase().indexOf(
+          params.ProvinceName.toLowerCase()
+        ) !== -1 &&
+        (!params.ProvinceCode || params.ProvinceCode === "")
+      ) {
+        newArr.push(item);
+      } else if (
+        item.ProvinceCode &&
+        item.ProvinceCode.toLowerCase().indexOf(
+          params.ProvinceCode.toLowerCase()
+        ) !== -1 &&
+        item.ProvinceName &&
+        item.ProvinceName.toLowerCase().indexOf(
+          params.ProvinceName.toLowerCase()
+        ) !== -1
+      ) {
+        newArr.push(item);
+      }
+    }
 
-  const handleSearch = () => {
-    const arr = [...data.Province]
-      .filter((item, index) => {
-        if (!params.ProvinceName || params.ProvinceName === "") {
-          return item;
+    const finalArr = [];
+    for (let i = 0; i < newArr.length; i++) {
+      const item = newArr[i];
+      finalArr.push(Object.assign({}, item, { Idx: i + 1 }));
+    }
+
+    setList(finalArr);
+  }
+
+  function handleEdit(currentItem) {
+    function handleSave(formValue) {
+      const arr = data.Province;
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i].ProvinceCode === formValue.ProvinceCode) {
+          arr[i] = formValue;
         }
-        return (
-          item.ProvinceName &&
-          item.ProvinceName.toLowerCase().includes(
-            params.ProvinceName.toLowerCase()
-          )
-        );
-      })
-      .filter((item, index) => {
-        if (!params.ProvinceCode || params.ProvinceCode === "") {
-          return item;
-        }
-        return (
-          item.ProvinceCode &&
-          item.ProvinceCode.toLowerCase().includes(
-            params.ProvinceCode.toLowerCase()
-          )
-        );
-      })
-      .map((item, index) => {
-        return {
-          ...item,
-          Idx: index + 1,
-        };
-      });
+      }
 
-    setList(arr);
-  };
+      setData(Object.assign({}, data, { Province: arr }));
 
-  const handleEdit = (rowData) => {
-    const confirmEdit = (formValue) => {
-      const arr = data.Province.map((item) => {
-        if (item.ProvinceCode === formValue.ProvinceCode) {
-          item = formValue;
-        }
-        return item;
-      });
+      handleBack();
+    }
 
-      setData({ ...data, Province: arr });
-      handleReload();
-    };
-
-    setPopUp(
-      <ProvincePopup
-        uuid={Math.random()}
-        rowData={rowData}
-        handleClick={confirmEdit}
+    setCurrentComponent(
+      <ProvinceEdit
+        handleBack={handleBack}
+        currentItem={currentItem}
+        handleSave={handleSave}
         title="Chỉnh sửa"
-        type="edit"
       />
     );
-  };
+  }
 
-  const handleDelete = (rowData) => {
-    const confirmDelete = (formValue) => {
-      const arr = data.Province.filter((item) => {
-        return item.ProvinceCode !== formValue.ProvinceCode;
-      });
+  function handleDelete(currentItem) {
+    if (
+      window.confirm(
+        `Bạn có muốn xóa tỉnh/thành phố: ${currentItem.ProvinceName}`
+      )
+    ) {
+      const arr = data.Province;
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i].ProvinceCode === currentItem.ProvinceCode) {
+          arr.splice(i, 1);
+        }
+      }
 
-      setData({
-        ...data,
-        Province: arr,
-        District: data.District.filter(
-          (item) => item.ProvinceCode !== formValue.ProvinceCode
-        ),
-      });
-      handleReload();
-    };
+      setData(Object.assign({}, data, { Province: arr }));
+    }
+  }
 
-    setPopUp(
-      <ProvincePopup
-        uuid={Math.random()}
-        rowData={rowData}
-        handleClick={confirmDelete}
-        title="Xóa"
-        provinceList={data.Province}
-        type="delete"
+  function handleBack() {
+    setCurrentComponent(null);
+  }
+
+  function handleAdd() {
+    function handleSave(formValue) {
+      const arr = data.Province;
+      let check = false;
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i].ProvinceCode === formValue.ProvinceCode) {
+          check = true;
+        }
+      }
+      if (check === false) {
+        arr.push(formValue);
+        setData(Object.assign({}, data, { Province: arr }));
+        handleBack();
+      } else {
+        alert("Mã quận/huyện đã tồn tại!");
+        return;
+      }
+    }
+
+    setCurrentComponent(
+      <ProvinceEdit
+        handleBack={handleBack}
+        handleSave={handleSave}
+        title="Thêm mới"
       />
     );
-  };
-
-  const handleAdd = () => {
-    const confirmAdd = (formValue) => {
-      const arr = [...data.Province, formValue];
-
-      setData({ ...data, Province: arr });
-      handleReload();
-    };
-
-    setPopUp(
-      <ProvincePopup
-        uuid={Math.random()}
-        handleClick={confirmAdd}
-        title="Thêm"
-        type="add"
-        provinceList={data.Province}
-      />
-    );
-  };
+  }
 
   useEffect(() => {
-    setList(data.District);
-    handleSearch();
-  }, [reloadKey]);
+    setList(data.Province);
+  }, [data]);
+
+  function renderSearch() {
+    return (
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+          flexDirection: "column",
+          alignItems: "flex-start",
+        }}
+      >
+        <div>
+          <label style={{ marginRight: 10 }}>Mã quận/huyện</label>
+          <input
+            onChange={function (e) {
+              setParams({
+                ProvinceCode: e.target.value,
+                ProvinceName: params.ProvinceName,
+              });
+            }}
+          />
+        </div>
+        <div>
+          <label style={{ marginRight: 10 }}>Tên quận/huyện</label>
+          <input
+            onChange={function (e) {
+              setParams({
+                ProvinceCode: params.ProvinceCode,
+                ProvinceName: e.target.value,
+              });
+            }}
+          />
+        </div>
+        <button
+          style={{ padding: "5px 10px", backgroundColor: "#73d13d" }}
+          onClick={handleSearch}
+        >
+          Tìm kiếm
+        </button>
+        <button
+          style={{ padding: "5px 10px", backgroundColor: "#b37feb" }}
+          onClick={handleAdd}
+        >
+          Thêm
+        </button>
+      </div>
+    );
+  }
+
+  function renderTable() {
+    const renderReacNode = [];
+    for (let i = 0; i < list.length; i++) {
+      renderReacNode.push(
+        <tr>
+          <td>{list[i].ProvinceCode}</td>
+          <td>{list[i].ProvinceName}</td>
+          <td>
+            <span style={{ display: "flex", gap: 10 }}>
+              <button
+                style={{
+                  padding: "5px 10px",
+                  backgroundColor: "#fff566",
+                }}
+                onClick={() => handleEdit(list[i])}
+              >
+                Sửa
+              </button>
+              <button
+                style={{
+                  padding: "5px 10px",
+                  backgroundColor: "#ff4d4f",
+                }}
+                onClick={() => handleDelete(list[i])}
+              >
+                Xóa
+              </button>
+            </span>
+          </td>
+        </tr>
+      );
+    }
+
+    return renderReacNode;
+  }
 
   return (
     <div
       style={{
-        height: "100%",
+        height: "100vh",
         width: "100%",
         overflow: "hidden",
-        padding: "10px 0",
+        padding: 10,
       }}
     >
-      <Stack style={{ marginBottom: 30 }} spacing={10}>
-        <Stack direction="column" spacing={10}>
-          <Stack spacing={10}>
-            <label>Tìm theo mã tỉnh</label>
-            <InputGroup
-              style={{ width: 300 }}
-              onChange={(e) => {
-                setParams({ ...params, ProvinceCode: e.target.value });
-              }}
-            >
-              <Input />
-              <InputGroup.Addon>
-                <SearchIcon />
-              </InputGroup.Addon>
-            </InputGroup>
-          </Stack>
-          <Stack spacing={10}>
-            <label>Tìm theo tên tỉnh</label>
-            <InputGroup
-              style={{ width: 300 }}
-              onChange={(e) => {
-                setParams({ ...params, ProvinceName: e.target.value });
-              }}
-            >
-              <Input />
-              <InputGroup.Addon>
-                <SearchIcon />
-              </InputGroup.Addon>
-            </InputGroup>
-          </Stack>
-        </Stack>
-
-        <IconButton
-          appearance="primary"
-          color="cyan"
-          icon={<SearchIcon />}
-          onClick={handleSearch}
-        >
-          Tìm kiếm
-        </IconButton>
-
-        <Button appearance="primary" color="green" onClick={handleAdd}>
-          Thêm
-        </Button>
-      </Stack>
-
-      <Table data={list} style={{ width: "100%" }} height={600} rowHeight={55}>
-        <Column width={100}>
-          <HeaderCell>STT</HeaderCell>
-          <Cell dataKey="Idx" />
-        </Column>
-
-        <Column width={200}>
-          <HeaderCell>ProvinceCode</HeaderCell>
-          <Cell dataKey="ProvinceCode" />
-        </Column>
-
-        <Column width={200}>
-          <HeaderCell>ProvinceName</HeaderCell>
-          <Cell dataKey="ProvinceName" />
-        </Column>
-
-        <Column width={200}>
-          <HeaderCell>FlagActive</HeaderCell>
-          <Cell style={{ display: "flex", justifyContent: "center" }}>
-            {(rowData) => <Flag flag={rowData.FlagActive} />}
-          </Cell>
-        </Column>
-
-        <Column width={200}>
-          <HeaderCell></HeaderCell>
-          <Cell>
-            {(rowData) => (
-              <Stack spacing={10}>
-                <Button
-                  style={{ height: 30 }}
-                  color="yellow"
-                  appearance="primary"
-                  onClick={() => handleEdit(rowData)}
-                >
-                  Sửa
-                </Button>
-                <Button
-                  style={{ height: 30 }}
-                  color="red"
-                  appearance="primary"
-                  onClick={() => handleDelete(rowData)}
-                >
-                  Xóa
-                </Button>
-              </Stack>
-            )}
-          </Cell>
-        </Column>
-      </Table>
-
-      {popUp}
+      {currentComponent || (
+        <>
+          {renderSearch()}
+          <div style={{ height: 550, overflow: "auto", marginTop: 50 }}>
+            <table border={1}>
+              <tr>
+                <th>ProvinceCode</th>
+                <th>ProvinceName</th>
+                <th></th>
+              </tr>
+              <tbody>{renderTable()}</tbody>
+            </table>
+          </div>
+        </>
+      )}
     </div>
   );
-};
+}
 
 export default Province;

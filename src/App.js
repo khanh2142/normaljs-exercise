@@ -8,58 +8,66 @@ import District from "./pages/district/District";
 import Province from "./pages/province/Province";
 
 function App() {
-  const defaultDistrictList = Object.values(districtList)
-    .map((item, index) => {
-      if (item.DistrictCode) {
-        return {
-          ...item,
-          Idx: index + 1,
-        };
+  function getDefaultDistrictList() {
+    const list = Object.values(districtList);
+    const arr = [];
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].DistrictCode) {
+        arr.push(list[i]);
       }
-    })
-    .filter((item) => item);
-  const defaultProvinceList = Object.values(provinceList)
-    .map((item, index) => {
-      if (item.ProvinceCode) {
-        return {
-          ...item,
-          Idx: index + 1,
-        };
+    }
+
+    return arr;
+  }
+
+  function getDefaultProvinceList() {
+    const list = Object.values(provinceList);
+    const arr = [];
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].ProvinceCode) {
+        arr.push(list[i]);
       }
-    })
-    .filter((item) => item);
+    }
+
+    return arr;
+  }
 
   const [data, setData] = useState({
-    District: defaultDistrictList,
-    Province: defaultProvinceList,
+    District: getDefaultDistrictList(),
+    Province: getDefaultProvinceList(),
   });
 
   const components = [
     {
-      key: "1-1",
+      key: "1",
       component: <District data={data} setData={setData} />,
+      content: "Quận/Huyện",
     },
     {
-      key: "1-2",
+      key: "2",
       component: <Province data={data} setData={setData} />,
+      content: "Tỉnh/Thành Phố",
     },
   ];
 
-  const [activeKey, setActiveKey] = React.useState("1-1");
-  const [expanded, setExpand] = React.useState(true);
+  const [activeKey, setActiveKey] = React.useState("1");
+
+  function renderComponent() {
+    for (let i = 0; i < components.length; i++) {
+      if (components[i].key === activeKey) {
+        return components[i].component;
+      }
+    }
+  }
 
   return (
     <div className="App">
       <Navbar
+        navList={components}
+        setActiveKey={setActiveKey}
         activeKey={activeKey}
-        onSelect={setActiveKey}
-        expanded={expanded}
-        onExpand={setExpand}
       />
-      <div style={{ height: "100vh", width: "100%", paddingRight: 10 }}>
-        {components.find((item) => item.key === activeKey) &&
-          components.find((item) => item.key === activeKey).component}
-      </div>
+      {renderComponent()}
     </div>
   );
 }

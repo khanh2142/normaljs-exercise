@@ -1,45 +1,46 @@
 import React from "react";
-import { Nav, Sidenav } from "rsuite";
 
-const styles = {
-  width: 240,
-  marginRight: 10,
-  height: "100vh",
-};
+const Navbar = ({ navList, setActiveKey, activeKey }) => {
+  function returnNavItem() {
+    const arrayReactNode = [];
 
-const navItemStyle = {
-  padding: "10px 0",
-  borderBottom: "1px solid black",
-};
+    if (navList && navList.length > 0) {
+      for (let i = 0; i < navList.length; i++) {
+        arrayReactNode.push(
+          <div
+            key={navList[i].key}
+            onClick={() => handleSetActiveKey(navList[i].key)}
+            style={{
+              backgroundColor: navList[i].key == activeKey && "blanchedalmond",
+              padding: 10,
+              cursor: "pointer",
+            }}
+          >
+            {navList[i].content}
+          </div>
+        );
+      }
+    }
 
-const Navbar = ({
-  appearance,
-  openKeys,
-  expanded,
-  onOpenChange,
-  onExpand,
-  ...navProps
-}) => {
+    return arrayReactNode;
+  }
+
+  function handleSetActiveKey(key) {
+    setActiveKey(key);
+  }
+
   return (
-    <div style={styles}>
-      <Sidenav
-        appearance={appearance}
-        expanded={true}
-        openKeys={openKeys}
-        onOpenChange={onOpenChange}
-        style={{ height: "100%" }}
-      >
-        <Sidenav.Body>
-          <Nav {...navProps}>
-            <Nav.Item eventKey="1-1" style={navItemStyle}>
-              Quận/Huyện
-            </Nav.Item>
-            <Nav.Item eventKey="1-2" style={navItemStyle}>
-              Tỉnh/Thành phố
-            </Nav.Item>
-          </Nav>
-        </Sidenav.Body>
-      </Sidenav>
+    <div
+      style={{
+        backgroundColor: "#f3f3f3",
+        width: 300,
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
+      }}
+    >
+      {returnNavItem()}
     </div>
   );
 };
