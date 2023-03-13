@@ -147,7 +147,7 @@ function Province({ data, setData }) {
         }}
       >
         <div>
-          <label style={{ marginRight: 10 }}>Mã quận/huyện</label>
+          <label style={{ marginRight: 10 }}>Mã tỉnh/thành phố</label>
           <input
             onChange={function (e) {
               setParams({
@@ -158,7 +158,7 @@ function Province({ data, setData }) {
           />
         </div>
         <div>
-          <label style={{ marginRight: 10 }}>Tên quận/huyện</label>
+          <label style={{ marginRight: 10 }}>Tên tỉnh/thành phố</label>
           <input
             onChange={function (e) {
               setParams({
