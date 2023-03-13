@@ -232,7 +232,7 @@ function Province({ data, setData }) {
       {currentComponent || (
         <>
           {renderSearch()}
-          <div style={{ height: 550, overflow: "auto", marginTop: 50 }}>
+          <div style={{ height: 500, overflow: "auto", marginTop: 50 }}>
             <table border={1}>
               <tr>
                 <th>ProvinceCode</th>
